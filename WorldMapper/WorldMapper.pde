@@ -170,17 +170,17 @@ void createWorld(String dirPath) {
 }
 
 World world = null;
-
+WorldDisplay world_display = null;
 void setup(){
   size (1024, 960);
   surface.setResizable(true);
+  surface.setSize(2 * displayWidth / 3, 2 * displayHeight / 3);
+
+  world_display = new WorldDisplay();
+  world_display.setup();
 }
 
 void handleResize() {
-  Dimension d = frame.getSize();
-  old_w = width;
-  old_h = height;
-  println(" RESIZE to", width, "x", height);
 }
 
 void setFolder(){
