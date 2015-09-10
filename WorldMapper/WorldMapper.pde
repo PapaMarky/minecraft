@@ -4,61 +4,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.Hashtable;
 import java.util.regex.*;
-import java.io.RandomAccessFile;
 
-class Region {
-  public Region(int x, int y, String path) {
-    _x = x;
-    _y = y;
-    try {
-      _f = new RandomAccessFile(path, "r");
-    } catch (Exception ex) {
-      println("Exception opening", path);
-      println(ex.getMessage());
-      _f = null;
-      _x = _y = 0;
-      return;
-    }
-    
-    if (_f != null) {
-      _locations = new byte[4096];
-      try {
-        int l = _f.read(_locations, 0, 4096);
-        println("-- read",l,"bytes from", path);
-      } catch (IOException ex) {
-        println("IO Exception reading region", path);
-      }
-    }
-  }
-  
-  public boolean chunk_exists(int x, int z) {
-    if (_locations == null) {
-      println("no locations data");
-      return false;
-    }
-    int loc = 4 * ((x & 31) + (z & 31) * 32);
-    //println("chunk", x, z, "loc:", loc);
-    if (_locations[loc] != 0 ||_locations[loc+1] != 0 ||_locations[loc+2] != 0 ||_locations[loc+3] != 0) {
-      println(" *** REGION",_x,_y,"CHUNK", x, ",", z, "***");
-      int chunk_off = ((int)(_locations[loc] & 0xff) << 16) + ((int)(_locations[loc+1] & 0xff) << 8) + (int)(_locations[loc+2] & 0xff);
-      println(" - offset:",chunk_off,"sector count:",_locations[loc+3]);
-
-      println((int)(_locations[loc] & 0xff));
-      println((int)(_locations[loc + 1] & 0xff));
-      println((int)(_locations[loc + 2] & 0xff));
-      println((int)(_locations[loc + 3] & 0xff));
-      return true;
-    }
-    return false;
-  }
-  
-  int _x;
-  int _y;
-  RandomAccessFile _f;
-  
-  byte[] _locations;
-  
-}
 
 class World {
   public World(String dirPath) {
