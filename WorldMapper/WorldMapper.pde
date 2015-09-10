@@ -22,11 +22,8 @@ void setup(){
   surface.setResizable(true);
   surface.setSize(2 * displayWidth / 3, 2 * displayHeight / 3);
 
-  world_display = new WorldDisplay();
+  world_display = new WorldDisplay(this);
   world_display.setup();
-}
-
-void handleResize() {
 }
 
 void setFolder(){
@@ -70,53 +67,6 @@ void folderSelected(File selection) {
   }
 }
 
-void drawRegion() {
-}
-
-void drawWorld() {
-  background(255);
-  if (world == null) {
-    return;
-  }
-  Rectangle bounds = world.getBounds();
-  int x0 = bounds.x;
-  int x1 = bounds.width - x0;
-  for (int x = x0; x < x1; x++) {
-    int z0 = bounds.y;
-    int z1 = bounds.height - z0;
-    for (int z = z0; z < z1; z++) {
-      Region r = world.getRegion(x, z);
-    }
-  }
-}
-
-void drawEmpty() {
-  background(128);
-  textSize(48);
-  textAlign(CENTER, CENTER);
-  fill(0, 0, 0);
-  String s= new String("Use Ctrl-O to Open A World");
-  text(s, 0, 0, width, height);
-  //println(s, "@ ", width, ",", height);
-}
-
-int old_w = 0;
-int old_h = 0;
-
 void draw() {
-  if (old_w != width || old_h != height) {
-    handleResize();
-  }
-  /*
-  Dimension d = frame.getSize();
-  if (width != d.width || height != d.height) {
-    println("Resize in Draw");
-    handleResize();
-  }
-  */
-  if (world == null) {
-    drawEmpty();
-    return;
-  }
-  drawWorld();
+  world_display.draw();
 }
