@@ -78,6 +78,11 @@ public class WorldDisplay {
         }
       }
     }
+    if (_applet.key == 17) {
+      Rectangle bounds = _world.getBounds();
+      Region r = _world.getRegion(0, 0);
+      r.load_chunk_data(0, 3);
+    }
   }
 
   private void handleResize() {

@@ -1,5 +1,6 @@
 import java.lang.Object;
 import java.io.*;
+import java.util.zip.Inflater;
 import processing.core.*;
 
 class Region {
@@ -60,6 +61,62 @@ class Region {
     }
   }
 
+  public void load_chunk_data(int x, int z) {
+    ChunkHeader ch = chunk_header(x, z);
+    if (ch.location == 0) {
+      return;
+    }
+
+    long offset = (long)ch.location * 4096L;
+    int size = ch.size * 4096;
+    System.out.println("chunk " + x + " " + z + " offset: " + offset + ", size: " + size);
+    byte[] data = new byte[size];
+    byte[] compressed_data;
+    int data_len = 0;
+    int compression = 0;
+    try {
+      _f.seek(0);
+      System.out.println(" - file size: " + _f.length());
+      _f.seek(offset);
+      data_len = bytes_to_int(_f.readByte(), _f.readByte(), _f.readByte(), _f.readByte());
+      System.out.println(" Data Length: " + data_len);
+      compression = _f.readByte();
+      System.out.println(" Compression: " + compression);
+      compressed_data = new byte[data_len - 1];
+      _f.read(compressed_data);
+    } catch (IOException ioe) {
+      System.out.println("IOExecption reading chunk data: " + ioe.getMessage());
+      return;
+    } catch (Exception e) {
+      System.out.println("Unhandled exception: " + e.getMessage());
+      throw e;
+    }
+    if (data_len == 0) {
+      return;
+    }
+    byte[] decompressed_data = new byte[1024*1024];
+    int decompressed_length = 0;
+    if (compression == 2) {
+      try {
+        System.out.println(" decompress");
+        Inflater decompresser = new Inflater();
+        System.out.println(" - setInput");
+        decompresser.setInput(compressed_data, 0, data_len - 1);
+        System.out.println(" - inflate");
+        decompressed_length = decompresser.inflate(decompressed_data);
+        decompresser.end();
+      } catch (java.util.zip.DataFormatException ex) {
+        System.out.println("Exception: " + ex.getMessage());
+      }
+      System.out.println(" GOT " + decompressed_length + " BYTES");
+      System.out.println(" -- First Tag: " + decompressed_data[0]);
+    }
+  }
+
+  private int bytes_to_int(byte b0, byte b1, byte b2, byte b3) {
+    return ((int)(b0 & 0xff) << 24) + ((int)(b1 & 0xff) << 16) + ((int)(b2 & 0xff) << 8) + (int)(b3 & 0xff);
+  }
+
   private ChunkHeader chunk_header(int x, int z) {
     ChunkHeader rval = new ChunkHeader();
     if (_locations == null) {
@@ -67,11 +124,10 @@ class Region {
       return rval;
     }
     int loc = 4 * ((x & 31) + (z & 31) * 32);
-    rval.location = ((int)(_locations[loc] & 0xff) << 16) + ((int)(_locations[loc+1] & 0xff) << 8) + (int)(_locations[loc+2] & 0xff);
+    rval.location = bytes_to_int((byte)0, _locations[loc], _locations[loc+1], _locations[loc+2]);
     rval.size = (int)(_locations[loc + 3] & 0xff);
     if (rval.location != 0) {
-      rval.timestamp =
-        ((int)(_locations[loc] & 0xff) << 24) + ((int)(_locations[loc+1] & 0xff) << 16) + ((int)(_locations[loc+2] & 0xff) << 8) + (int)(_locations[loc+3] & 0xff);
+      rval.timestamp = bytes_to_int(_locations[loc], _locations[loc+1], _locations[loc+2], _locations[loc+3]);
     }
     return rval;
   }
