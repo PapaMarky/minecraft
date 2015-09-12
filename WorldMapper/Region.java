@@ -109,11 +109,20 @@ class Region {
         System.out.println("Exception: " + ex.getMessage());
       }
       System.out.println(" GOT " + decompressed_length + " BYTES");
-      System.out.println(" -- First Tag: " + decompressed_data[0]);
+      /*
+      for (int i = 0; i < 50 && i < decompressed_length; i++) {
+        System.out.println(" -- [" + i + "]: " + decompressed_data[i]);
+      } */
+      NBT_Parser parser = new NBT_Parser(decompressed_data, decompressed_length);
+      NBT_Tag tag = parser.GetNextTag();
+      while (tag != null && tag.type != 0) {
+        System.out.println(tag.toString());
+        tag = parser.GetNextTag();
+      }
     }
   }
 
-  private int bytes_to_int(byte b0, byte b1, byte b2, byte b3) {
+  static public int bytes_to_int(byte b0, byte b1, byte b2, byte b3) {
     return ((int)(b0 & 0xff) << 24) + ((int)(b1 & 0xff) << 16) + ((int)(b2 & 0xff) << 8) + (int)(b3 & 0xff);
   }
 
